@@ -1,0 +1,21 @@
+name: Проверка публичного распространения
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_legal_review:
+        description: 'Я проверил разрешение автора на использование материалов и корректность атрибуции'
+        required: true
+        type: boolean
+jobs:
+  release-gate:
+    if: ${{ inputs.confirm_legal_review }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -e '.[test]'
+      - run: python -m wordraft validate
+      - run: python -m pytest tests -q
+      - run: python -m wordraft release-check --profile public
